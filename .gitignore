@@ -1,0 +1,10 @@
+/*
+!/.gitignore
+!/wp-content
+/wp-content/*
+!/wp-content/plugins
+/wp-content/plugins/*
+!/wp-content/plugins/wooCommerce1Cimport
+!/1c
+/1c/*
+!/1c/nodejs
