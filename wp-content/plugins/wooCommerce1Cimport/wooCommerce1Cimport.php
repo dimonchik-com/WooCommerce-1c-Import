@@ -178,27 +178,31 @@ class mxXMLImport {
         ));
         if (count($_post)) {
             $id=$_post[0]->ID;
-            echo wp_update_post(array(
+            wp_update_post(array(
                 'ID'=>$id,
                 'post_title'=>$offer['name'],
-                'post_content'=>$offer['description'],
-                'tax_input'=>array(
-                    'product_cat'=>$offer['groups'][0]
-                ),
-            )).", ";
+                'post_content'=>$offer['description']
+            ));
+        
+            $term = get_term( $offer['groups'][0], "product_cat" );
+            wp_set_object_terms( $id, [$term->name], 'product_cat' );
         } else {
-            echo $id=wp_insert_post(array(
+            $id=wp_insert_post(array(
                 'post_type'=>'product',
                 'post_title'=>$offer['name'],
                 'post_content'=>$offer['description'],
-                'post_status'   => 'publish',
-                'tax_input'=>array(
-                    'product_cat'=>$offer['groups'][0]
-                ),
-            )).", ";
+                'post_status'   => 'publish'
+            ));
+
+            $term = get_term( $offer['groups'][0], "product_cat" );
+            wp_set_object_terms( $id, [$term->name], 'product_cat' );
+
             update_post_meta($id,'mx_id',$offer_id);
             update_post_meta($id,'_visibility','visible');
         }
+
+        echo $id.",";
+
         if (!count($_post) || $this->ifUpdate) {
             update_post_meta($id, '_price', $offer['price']);
             update_post_meta($id, '_sale_price', $offer['price']);
@@ -286,6 +290,16 @@ function mximport_init()
         $mxXMLImport=new mxXMLImport();
         foreach ($_POST["list_product"] as $v) {
             $mxXMLImport->update_or_insert_one_product($v["index"],$v["data"]);
+        }
+        exit;
+    } else if(isset($_REQUEST['action']) && $_REQUEST["action"]=="delete_all_empty_category_post") {
+        $args = array( 'posts_per_page' => -1, 'post_type'=> "product");
+        $myposts = get_posts( $args );
+        foreach ($myposts as $value) {
+            $terms = wp_get_post_terms($value->ID, "product_cat");
+            if(empty($terms)) {
+                wp_delete_post($value->ID,true);
+            }
         }
         exit;
     }
