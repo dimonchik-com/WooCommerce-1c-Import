@@ -204,6 +204,11 @@ class mxXMLImport {
         echo $id.",";
 
         if (!count($_post) || $this->ifUpdate) {
+            if(!$offer['price'] || $offer['stock']=="outofstock") {
+                wp_delete_post( $id, true );
+                return false;
+            }
+
             update_post_meta($id, '_price', $offer['price']);
             update_post_meta($id, '_sale_price', $offer['price']);
             update_post_meta($id, '_regular_price', $offer['price']);
@@ -302,5 +307,24 @@ function mximport_init()
             }
         }
         exit;
+    } else if(isset($_REQUEST['action']) && $_REQUEST["action"]=="get_outofstock_product") {
+
+        $args = array( 
+            'post_type'   => array( 'product' ),
+            'post_status' => get_post_status(),
+            'numberposts' => -1,
+            );
+        $products = get_posts( $args );
+
+        $all_product=[];
+        foreach ($products as $key => $value) {
+            $all_product[] = $value->ID;
+        }
+
+        //echo count($all_product);
+        echo json_encode($all_product);
+        exit;
+    } else if(isset($_REQUEST['action']) && $_REQUEST['action']=="remove_product_by_id" && !empty($_REQUEST['post_id'])) {
+    	wp_delete_post($_REQUEST['post_id'],true);
     }
 }
